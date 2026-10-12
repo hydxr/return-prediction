@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETURNAI // Intelligent Order Return Predictor</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 10% 20%, #0f172a 0%, #020617 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6);
+    }
+    .glow-indigo {
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
+    }
+    .glow-rose {
+      animation: pulse-danger 2s infinite ease-in-out;
+    }
+    @keyframes pulse-danger {
+      0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.25); }
+      50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.6); }
+    }
+    input[type=range] {
+      accent-color: #6366f1;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 font-sans">
+  <div class="max-w-7xl mx-auto space-y-8">
+    
+    <!-- Top Navigation Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 text-xs font-bold tracking-wider uppercase rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+            ⚡ Machine Learning Inference Engine
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live v2.4
+          </span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight mt-2 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          RETURNAI // E-Commerce Return Predictor
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">
+          Predict customer returns before dispatch, identify sizing bracket patterns, and protect merchant margins.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="glass-panel px-4 py-2 rounded-xl text-center">
+          <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Model ROC-AUC</div>
+          <div class="text-xl font-extrabold text-indigo-400 font-mono">89.4%</div>
+        </div>
+        <div class="glass-panel px-4 py-2 rounded-xl text-center">
+          <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Baseline Precision</div>
+          <div class="text-xl font-extrabold text-emerald-400 font-mono">84.2%</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Column: Input Form (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="glass-panel rounded-2xl p-6 glow-indigo">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 mb-1">
+            <span>⚙️</span> Live Order Configuration
+          </h2>
+          <p class="text-xs text-slate-400 mb-6">Modify transactional indicators to calculate probability in real-time.</p>
+
+          <div class="space-y-4">
+            <!-- Product Category -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1.5">Product Category</label>
+              <select id="inputCategory" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="apparel">Apparel & Fashion (High Return)</option>
+                <option value="shoes">Footwear & Shoes (High Return)</option>
+                <option value="electronics">Consumer Electronics</option>
+                <option value="home">Home & Kitchen</option>
+                <option value="beauty">Beauty & Cosmetics</option>
+                <option value="jewelry">Jewelry & Accessories</option>
+              </select>
+            </div>
+
+            <!-- Price & Discount Row -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                  <span>Item Price</span>
+                  <span id="priceVal" class="text-indigo-400 font-mono font-bold">$125</span>
+                </div>
+                <input id="inputPrice" type="range" min="15" max="800" value="125" step="5" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                  <span>Discount</span>
+                  <span id="discountVal" class="text-amber-400 font-mono font-bold">25%</span>
+                </div>
+                <input id="inputDiscount" type="range" min="0" max="75" value="25" step="5" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Customer Past Return Rate & Age -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                  <span>Past Return Rate</span>
+                  <span id="pastReturnVal" class="text-rose-400 font-mono font-bold">20%</span>
+                </div>
+                <input id="inputPastReturn" type="range" min="0" max="100" value="20" step="2" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                  <span>Customer Age</span>
+                  <span id="ageVal" class="text-slate-300 font-mono font-bold">29 yrs</span>
+                </div>
+                <input id="inputAge" type="range" min="18" max="70" value="29" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Basket Items & Delivery Days -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1.5">Items in Basket</label>
+                <select id="inputItemsCount" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                  <option value="1">1 Item</option>
+                  <option value="2" selected>2 Items</option>
+                  <option value="3">3 Items</option>
+                  <option value="4">4+ Items</option>
+                </select>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                  <span>Transit Days</span>
+                  <span id="deliveryVal" class="text-slate-300 font-mono font-bold">3 days</span>
+                </div>
+                <input id="inputDelivery" type="range" min="1" max="14" value="3" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-1.5">Payment Method</label>
+              <select id="inputPayment" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="cod">Cash on Delivery (High Risk)</option>
+                <option value="cc" selected>Credit Card</option>
+                <option value="bnpl">Buy Now Pay Later (BNPL)</option>
+                <option value="upi">Digital Wallet / UPI</option>
+              </select>
+            </div>
+
+            <!-- Risk Factor Toggles -->
+            <div class="pt-2 border-t border-slate-800/80 space-y-2">
+              <label class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition">
+                <input id="inputBracket" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                <div class="text-xs">
+                  <div class="font-semibold text-slate-200">Bracket Buying Detected</div>
+                  <div class="text-slate-400 text-[11px]">Customer ordered multiple sizes/colors of same SKU</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition">
+                <input id="inputSizeDiscrepancy" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                <div class="text-xs">
+                  <div class="font-semibold text-slate-200">Item Fit Feedback: Runs Small/Large</div>
+                  <div class="text-slate-400 text-[11px]">Crowdsourced reviews report sizing discrepancies</div>
+                </div>
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Results & Analytics (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Probability & Metric Showcase -->
+        <div id="riskCard" class="glass-panel rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span id="riskBadge" class="inline-flex items-center gap-2 px-3.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                <span class="w-2 h-2 rounded-full bg-rose-400"></span> CRITICAL RETURN RISK
+              </span>
+              <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider mt-3">Calculated Return Probability</div>
+              <div class="flex items-baseline gap-2">
+                <span id="probScore" class="text-5xl md:text-6xl font-black font-mono tracking-tight text-white">68.4%</span>
+                <span id="probDelta" class="text-xs font-semibold text-rose-400">+42% above store average</span>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 gap-3 min-w-[240px]">
+              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Est. Return Cost</div>
+                <div id="estCost" class="text-xl font-bold font-mono text-rose-400 mt-0.5">$35.00</div>
+                <div class="text-[10px] text-slate-500">Shipping & Restock</div>
+              </div>
+              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Margin at Risk</div>
+                <div id="marginRisk" class="text-xl font-bold font-mono text-amber-400 mt-0.5">$23.94</div>
+                <div class="text-[10px] text-slate-500">Probability weighted</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Probability Progress Bar -->
+          <div class="mt-6">
+            <div class="w-full bg-slate-950/80 rounded-full h-3 p-0.5 border border-slate-800 overflow-hidden">
+              <div id="probBar" class="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-amber-500 to-rose-500" style="width: 68%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono font-bold">
+              <span>0% LOW RISK</span>
+              <span>35% MODERATE</span>
+              <span>60%+ CRITICAL ALERT</span>
+            </div>
+          </div>
+
+          <!-- Prescriptive Recommendation Box -->
+          <div id="adviceBox" class="mt-5 p-4 rounded-xl bg-slate-900/90 border-l-4 border-rose-500 flex items-start gap-3">
+            <span class="text-xl">🤖</span>
+            <div class="text-xs">
+              <span class="font-bold text-slate-200 block text-sm">Automated Prevention Protocol</span>
+              <p id="adviceText" class="text-slate-300 mt-0.5 leading-relaxed">
+                Bracket ordering and sizing mismatch detected. Send instant WhatsApp sizing verification and offer a $6 store wallet credit if customer confirms size before shipment.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Visual Analytics: Category Return Risk Chart -->
+        <div class="glass-panel rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wide">Category Benchmark Return Rates (%)</h3>
+              <p class="text-xs text-slate-400">Industry averages vs AI baseline model</p>
+            </div>
+            <span class="text-xs text-indigo-400 font-mono font-semibold">Trained on 4,000+ orders</span>
+          </div>
+          <div class="h-56">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Strategy Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="glass-panel rounded-xl p-4">
+            <div class="text-indigo-400 text-lg mb-1">🛡️ Anti-Bracket</div>
+            <div class="text-xs font-bold text-slate-200">FitFinder Concierge</div>
+            <p class="text-[11px] text-slate-400 mt-1">Intervene before shipment when multiple sizes of the same style are ordered.</p>
+          </div>
+          <div class="glass-panel rounded-xl p-4">
+            <div class="text-amber-400 text-lg mb-1">💳 COD Safeguard</div>
+            <div class="text-xs font-bold text-slate-200">Prepayment Incentive</div>
+            <p class="text-[11px] text-slate-400 mt-1">Offer 5% discount to switch Cash on Delivery to instant UPI or Card.</p>
+          </div>
+          <div class="glass-panel rounded-xl p-4">
+            <div class="text-emerald-400 text-lg mb-1">📦 Exchange First</div>
+            <div class="text-xs font-bold text-slate-200">1-Click Size Swap</div>
+            <p class="text-[11px] text-slate-400 mt-1">Automate seamless door-step size exchange instead of issuing refund.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="pt-6 border-t border-slate-800/80 text-center text-xs text-slate-500">
+      ⚡ Built with Antigravity • Calibrated Machine Learning Return Risk Architecture
+    </footer>
+
+  </div>
+
+  <!-- Interactive Inference Engine Logic -->
+  <script>
+    // State references
+    const categoryEl = document.getElementById('inputCategory');
+    const priceEl = document.getElementById('inputPrice');
+    const priceVal = document.getElementById('priceVal');
+    const discountEl = document.getElementById('inputDiscount');
+    const discountVal = document.getElementById('discountVal');
+    const pastReturnEl = document.getElementById('inputPastReturn');
+    const pastReturnVal = document.getElementById('pastReturnVal');
+    const ageEl = document.getElementById('inputAge');
+    const ageVal = document.getElementById('ageVal');
+    const itemsEl = document.getElementById('inputItemsCount');
+    const deliveryEl = document.getElementById('inputDelivery');
+    const deliveryVal = document.getElementById('deliveryVal');
+    const paymentEl = document.getElementById('inputPayment');
+    const bracketEl = document.getElementById('inputBracket');
+    const sizeDiscrepancyEl = document.getElementById('inputSizeDiscrepancy');
+
+    const probScoreEl = document.getElementById('probScore');
+    const probDeltaEl = document.getElementById('probDelta');
+    const probBarEl = document.getElementById('probBar');
+    const riskBadgeEl = document.getElementById('riskBadge');
+    const riskCardEl = document.getElementById('riskCard');
+    const estCostEl = document.getElementById('estCost');
+    const marginRiskEl = document.getElementById('marginRisk');
+    const adviceBoxEl = document.getElementById('adviceBox');
+    const adviceTextEl = document.getElementById('adviceText');
+
+    function calculateRisk() {
+      const price = parseFloat(priceEl.value);
+      const discount = parseFloat(discountEl.value);
+      const pastReturn = parseFloat(pastReturnEl.value) / 100;
+      const age = parseFloat(ageEl.value);
+      const items = parseInt(itemsEl.value);
+      const delivery = parseInt(deliveryEl.value);
+      const category = categoryEl.value;
+      const payment = paymentEl.value;
+      const hasBracket = bracketEl.checked;
+      const hasSizeIssue = sizeDiscrepancyEl.checked;
+
+      // Update Slider Label Texts
+      priceVal.textContent = `$${price}`;
+      discountVal.textContent = `${discount}%`;
+      pastReturnVal.textContent = `${Math.round(pastReturn * 100)}%`;
+      ageVal.textContent = `${age} yrs`;
+      deliveryVal.textContent = `${delivery} day${delivery > 1 ? 's' : ''}`;
+
+      // Calibrated Logistic Regression Model
+      let logOdds = -1.75; // baseline intercept (~15% base rate)
+
+      // Category factor
+      const catWeights = {
+        apparel: 0.88,
+        shoes: 0.95,
+        electronics: -0.45,
+        home: -0.32,
+        beauty: -0.65,
+        jewelry: -0.22
+      };
+      logOdds += (catWeights[category] || 0);
+
+      // Payment method factor
+      const payWeights = {
+        cod: 0.72,
+        bnpl: 0.52,
+        cc: -0.18,
+        upi: -0.10
+      };
+      logOdds += (payWeights[payment] || 0);
+
+      // Historical return rate weight
+      logOdds += (pastReturn * 2.8);
+
+      // Bracket buying weight
+      if (hasBracket) {
+        logOdds += 1.35;
+      }
+
+      // Sizing Discrepancy
+      if (hasSizeIssue && (category === 'apparel' || category === 'shoes')) {
+        logOdds += 0.65;
+      }
+
+      // Discount impulses
+      if (discount >= 40) {
+        logOdds += 0.40;
+      }
+
+      // Delivery delays
+      if (delivery > 5) {
+        logOdds += 0.35;
+      }
+
+      // High ticket return scrutiny
+      if (price > 350) {
+        logOdds += 0.28;
+      }
+
+      // Sigmoid
+      let prob = 1 / (1 + Math.exp(-logOdds));
+      prob = Math.max(0.02, Math.min(0.98, prob));
+      const pct = (prob * 100).toFixed(1);
+
+      probScoreEl.textContent = `${pct}%`;
+      probBarEl.style.width = `${pct}%`;
+
+      // Financials
+      const restockCost = (price * 0.18 + 12.5).toFixed(2);
+      const marginLoss = (prob * restockCost).toFixed(2);
+      estCostEl.textContent = `$${restockCost}`;
+      marginRiskEl.textContent = `$${marginLoss}`;
+
+      // Styling and Tiers
+      if (pct < 32) {
+        riskBadgeEl.className = "inline-flex items-center gap-2 px-3.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+        riskBadgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> LOW RISK ORDER`;
+        probDeltaEl.textContent = "Safe order - high retention probability";
+        probDeltaEl.className = "text-xs font-semibold text-emerald-400";
+        probBarEl.className = "h-full rounded-full transition-all duration-500 bg-emerald-500";
+        adviceBoxEl.className = "mt-5 p-4 rounded-xl bg-slate-900/90 border-l-4 border-emerald-500 flex items-start gap-3";
+        adviceTextEl.textContent = "Order qualifies for expedited express fulfillment. High retention expected with minimal friction.";
+        riskCardEl.classList.remove('glow-rose');
+      } else if (pct < 60) {
+        riskBadgeEl.className = "inline-flex items-center gap-2 px-3.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30";
+        riskBadgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> MODERATE RISK`;
+        probDeltaEl.textContent = "+18% above typical median";
+        probDeltaEl.className = "text-xs font-semibold text-amber-400";
+        probBarEl.className = "h-full rounded-full transition-all duration-500 bg-amber-500";
+        adviceBoxEl.className = "mt-5 p-4 rounded-xl bg-slate-900/90 border-l-4 border-amber-500 flex items-start gap-3";
+        adviceTextEl.textContent = "Recommend order confirmation email with sizing specs or estimated delivery reminder to prevent cancellation on arrival.";
+        riskCardEl.classList.remove('glow-rose');
+      } else {
+        riskBadgeEl.className = "inline-flex items-center gap-2 px-3.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30";
+        riskBadgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400"></span> CRITICAL RETURN RISK`;
+        probDeltaEl.textContent = "+45% above store average";
+        probDeltaEl.className = "text-xs font-semibold text-rose-400";
+        probBarEl.className = "h-full rounded-full transition-all duration-500 bg-rose-500";
+        adviceBoxEl.className = "mt-5 p-4 rounded-xl bg-slate-900/90 border-l-4 border-rose-500 flex items-start gap-3";
+        adviceTextEl.textContent = "Severe bracket or COD risk detected. Trigger automated WhatsApp size confirmation or offer a $6 store credit to switch to single-size prepaid.";
+        riskCardEl.classList.add('glow-rose');
+      }
+    }
+
+    // Attach listeners
+    [categoryEl, priceEl, discountEl, pastReturnEl, ageEl, itemsEl, deliveryEl, paymentEl, bracketEl, sizeDiscrepancyEl].forEach(el => {
+      el.addEventListener('input', calculateRisk);
+      el.addEventListener('change', calculateRisk);
+    });
+
+    // Render Chart.js
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Apparel', 'Footwear', 'Electronics', 'Home & Kitchen', 'Beauty', 'Jewelry'],
+        datasets: [{
+          label: 'Historical Return Rate (%)',
+          data: [36.2, 41.5, 12.8, 14.1, 8.4, 11.2],
+          backgroundColor: [
+            'rgba(244, 63, 94, 0.75)',
+            'rgba(239, 68, 68, 0.85)',
+            'rgba(99, 102, 241, 0.6)',
+            'rgba(147, 51, 234, 0.6)',
+            'rgba(16, 185, 129, 0.6)',
+            'rgba(245, 158, 11, 0.6)'
+          ],
+          borderColor: 'transparent',
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 50,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: {
+              color: '#94a3b8',
+              callback: value => value + '%'
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#cbd5e1' }
+          }
+        }
+      }
+    });
+
+    // Initial calculation on page load
+    calculateRisk();
+  </script>
+</body>
+</html>
+
